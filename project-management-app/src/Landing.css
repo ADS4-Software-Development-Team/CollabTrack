@@ -1,0 +1,31 @@
+.landing-page {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: calc(100vh - 80px); /* Adjust based on header height */
+  text-align: center;
+  background-color: #f4f7f6;
+}
+
+.landing-container {
+  max-width: 600px;
+  padding: 2rem;
+}
+
+.landing-container h1 {
+  font-size: 3rem;
+  color: #2c3e50;
+  margin-bottom: 1rem;
+}
+
+.landing-container p {
+  font-size: 1.2rem;
+  color: #555;
+  margin-bottom: 2rem;
+}
+
+.landing-actions {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+}
