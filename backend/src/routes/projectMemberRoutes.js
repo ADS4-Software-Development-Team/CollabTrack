@@ -12,8 +12,10 @@ const router = express.Router();
 // Routes for /api/project-members
 router
   .route("/")
-  .post(protect, authorize("admin"), addMemberToProject)
   .get(protect, authorize("admin"), getAllProjectMembers);
+
+//only admin can add members
+router.route("/addMemberToProject").post(protect, authorize("admin"), addMemberToProject)
 
 router
   .route("/:projectId")

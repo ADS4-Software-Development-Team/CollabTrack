@@ -9,6 +9,15 @@ import {
 export const addMemberToProject = async (req, res) => {
   try {
     const { project_id, user_id, project_role } = req.body;
+
+  
+    const allowedRoles = ["manager", "member"];
+    if (!allowedRoles.includes(project_role)) {
+      return res.status(400).json({
+        message: `Invalid project_role. Allowed values are: ${allowedRoles.join(", ")}.`,
+      });
+    }
+
     const newMember = await addmember(project_id, user_id, project_role);
     res.status(201).json(newMember);
   } catch (error) {
@@ -32,7 +41,7 @@ export const getAllProjectMembers = async (req, res) => {
 export const getMembersForProject = async (req, res) => {
   try {
     const { projectId } = req.params;
-    const members = await getProjectByID(projectId); // Note: model function is getProjectByTitle
+    const members = await getProjectByID(projectId);
     if (!members || members.length === 0) {
       return res.status(404).json({ message: "No members found for this project" });
     }
