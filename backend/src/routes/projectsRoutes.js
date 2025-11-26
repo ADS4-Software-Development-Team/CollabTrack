@@ -11,10 +11,10 @@ const router = express.Router();
 
 router
   .route("/")
-  .get(protect, viewAllProjects); // Any authenticated user can view all projects
+  .get(protect, viewAllProjects); //Any authenticated user can view all projects
 
 router.route("/createProject").post(protect, authorize("admin"), createNewProject)        
 
-router.route("/:title").get(protect, viewProjectByTitle); // Any authenticated user can view a single project
+router.route("/:title").get(protect, viewProjectByTitle); //Any authenticated user can view a single project
 
 export default router;

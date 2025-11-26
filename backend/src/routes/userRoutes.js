@@ -16,12 +16,12 @@ router.post("/register", registerUser);
 
 router
   .route("/")
-  .get(protect, authorize("admin"), getAllUsers);
+  .get(protect, authorize("admin"), getAllUsers); //only admin have access to view all users
 
 router
   .route("/:id")
   .get(protect, getUser)
-  .put(protect, updateUserProfile)
-  .delete(protect, authorize("admin"), removeUser);
+  .put(protect,authorize("admin"), updateUserProfile) //only admin can updated users
+  .delete(protect, authorize("admin"), removeUser); //only admin can remove users
 
 export default router;
