@@ -1,25 +1,24 @@
 import express from "express";
 import {
   addMemberToProject,
-  getAllProjectMembers,
   getMembersForProject,
   updateMemberRole,
+  //removeMemberFromProject,
 } from "../controllers/projectMemberController.js";
 import { protect, authorize } from "../middlewares/authMiddleware.js";
 
-const router = express.Router();
+// This router will be mounted with `mergeParams: true` to access `projectId` from the parent router.
+const router = express.Router({ mergeParams: true });
 
-// Routes for /api/project-members
+// Routes for /api/projects/:projectId/members
 router
   .route("/")
-  .get(protect, authorize("admin"), getAllProjectMembers);
-
-//only admin can add members
-router.route("/addMemberToProject").post(protect, authorize("admin"), addMemberToProject)
+  .get(protect, getMembersForProject) // Auth users can see members of a project
+  .post(protect, authorize("manager"), addMemberToProject); // Managers can add members
 
 router
-  .route("/:projectId")
-  .get(protect, getMembersForProject)
-  .put(protect, authorize("admin"), updateMemberRole);
+  .route("/:userId")
+  .put(protect, authorize("manager"), updateMemberRole) // Managers can update a member's role
+  //.delete(protect, authorize("manager"), removeMemberFromProject); // Managers can remove members
 
 export default router;

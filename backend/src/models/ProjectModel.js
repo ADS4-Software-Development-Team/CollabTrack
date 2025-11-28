@@ -62,3 +62,22 @@ export const getProjectByTitle = async (title) => {
     throw error;
   }
 };
+
+//Update project description", "status", "deadline"
+export const updateProject = async (title, description,status,deadline) => { 
+  try {
+    const { data, error } = await supabase
+      .from("projects")
+      .update({ description,status,deadline })
+      .eq("title", title)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
+  } catch (error) {
+    console.error("Error updating project status:", error);
+    throw error;
+  }
+}
+
