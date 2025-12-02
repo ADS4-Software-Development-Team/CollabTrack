@@ -6,6 +6,7 @@ import projectsRoutes from "./src/routes/projectsRoutes.js";
 import projectMemberRoutes from "./src/routes/projectMemberRoutes.js";
 import workspaceRoutes from "./src/routes/workspaceRoutes.js";
 import authRoutes from "./src/routes/authRoutes.js";
+import taskRoutes from "./src/routes/tasksRoutes.js";
 
 dotenv.config();
 
@@ -25,6 +26,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/projects", projectsRoutes);
 app.use("/api/workspaces", workspaceRoutes);
+app.use("/api/tasks", taskRoutes);
 
 // Nested route for project members
 projectsRoutes.use("/:projectId/members", projectMemberRoutes);
