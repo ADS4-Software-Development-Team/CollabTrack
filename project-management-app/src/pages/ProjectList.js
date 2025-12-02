@@ -20,12 +20,6 @@ function ProjectList() {
     <div className="project-list">
       <div className="page-header">
         <h1>Projects</h1>
-        <button 
-          className="btn-primary"
-          onClick={() => setShowForm(true)}
-        >
-          Add New Project
-        </button>
       </div>
 
       {showForm && (

@@ -71,3 +71,309 @@
   margin-bottom: 1rem;
   color: #2c3e50;
 }
+
+/* Add these styles to your existing ProjectDetail.css */
+
+/* Breadcrumb Navigation */
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+  padding: 0.75rem;
+  background: #f8f9fa;
+  border-radius: 0.375rem;
+  font-size: 0.9rem;
+}
+
+.breadcrumb-item {
+  color: #6c757d;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.breadcrumb-item:hover {
+  color: #007bff;
+  text-decoration: underline;
+}
+
+.breadcrumb-item.active {
+  color: #2c3e50;
+  font-weight: 500;
+}
+
+.breadcrumb-separator {
+  color: #adb5bd;
+}
+
+/* Project Header Updates */
+.project-info-section {
+  flex: 1;
+}
+
+.project-title-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+  gap: 1rem;
+}
+
+.project-title-row > div {
+  flex: 1;
+}
+
+/* Workspace Badge */
+.workspace-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.375rem 0.75rem;
+  background: #f8f9fa;
+  border-radius: 9999px;
+  margin-top: 0.5rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: 1px solid #e9ecef;
+}
+
+.workspace-badge:hover {
+  background: #e9ecef;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.workspace-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.workspace-name {
+  font-size: 0.875rem;
+  color: #495057;
+  font-weight: 500;
+}
+
+.workspace-switch-icon {
+  margin-left: 0.25rem;
+  stroke: #6c757d;
+}
+
+.workspace-badge:hover .workspace-switch-icon {
+  stroke: #007bff;
+}
+
+/* Project Stats */
+.project-stats {
+  display: flex;
+  gap: 2rem;
+  margin: 1.5rem 0;
+  padding: 1rem;
+  background: #f8f9fa;
+  border-radius: 0.5rem;
+}
+
+.project-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 80px;
+}
+
+.project-stat .stat-number {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #2c3e50;
+  margin-bottom: 0.25rem;
+}
+
+.project-stat .stat-label {
+  font-size: 0.875rem;
+  color: #6c757d;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Project Progress Bar */
+.project-progress {
+  height: 8px;
+  background-color: #e9ecef;
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 1.5rem;
+}
+
+.progress-bar {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+/* Project Metadata */
+.project-metadata {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  padding: 1.5rem;
+  background: white;
+  border-radius: 0.5rem;
+  border: 1px solid #e9ecef;
+  margin-top: 1.5rem;
+}
+
+.metadata-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.metadata-label {
+  font-size: 0.875rem;
+  color: #6c757d;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.metadata-value {
+  font-size: 1rem;
+  color: #2c3e50;
+  font-weight: 500;
+}
+
+/* Status Badge */
+.status-badge {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.status-badge.active {
+  background-color: #d1ecf1;
+  color: #0c5460;
+}
+
+.status-badge.planning {
+  background-color: #fef3cd;
+  color: #856404;
+}
+
+.status-badge.completed {
+  background-color: #d4edda;
+  color: #155724;
+}
+
+.status-badge['on-hold'] {
+  background-color: #e2e3e5;
+  color: #383d41;
+}
+
+/* Workspace Link */
+.workspace-link {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  transition: color 0.2s;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+}
+
+.workspace-link:hover {
+  background: #f8f9fa;
+  color: #007bff;
+}
+
+.workspace-color-small {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* Button with Icon */
+.btn-primary {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background: linear-gradient(135deg, #007bff, #0056b3);
+  color: white;
+  border: none;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.btn-primary:hover {
+  background: linear-gradient(135deg, #0056b3, #004085);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 123, 255, 0.3);
+}
+
+.btn-primary svg {
+  stroke: white;
+}
+
+/* Responsive Updates */
+@media (max-width: 768px) {
+  .project-title-row {
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  .project-stats {
+    gap: 1rem;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  
+  .project-stat {
+    min-width: 60px;
+  }
+  
+  .project-stat .stat-number {
+    font-size: 1.5rem;
+  }
+  
+  .project-metadata {
+    grid-template-columns: 1fr;
+  }
+  
+  .workspace-badge {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .breadcrumb {
+    font-size: 0.8rem;
+    flex-wrap: wrap;
+  }
+  
+  .project-stats {
+    gap: 0.5rem;
+  }
+  
+  .project-stat {
+    min-width: 50px;
+  }
+  
+  .project-stat .stat-number {
+    font-size: 1.25rem;
+  }
+  
+  .project-stat .stat-label {
+    font-size: 0.75rem;
+  }
+}
+
