@@ -50,7 +50,7 @@ export const updateProjectInfo = async (req, res) => {
 
   try {
     const updatedProject = await updateProject(title, description,status,deadline);
-    if (!updateProject) return res.status(404).json({ message: "Project not found" });
+    if (!updatedProject) return res.status(404).json({ message: "Project not found" });
     res.status(200).json(updatedProject);
   } catch (error) {
     console.error("Error updating project:", error);
