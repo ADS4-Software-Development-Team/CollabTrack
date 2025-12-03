@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useReducer } from "react";
 import { v4 as uuidv4 } from "uuid";
+import axios from "axios";
 
 const AppContext = createContext();
 
@@ -233,16 +234,10 @@ const initialState = {
 
 function appReducer(state, action) {
   switch (action.type) {
-  
-    case "LOGIN":
+    case "LOGIN_SUCCESS":
       return {
         ...state,
         isAuthenticated: true,
-        user: action.payload?.user || {
-          id: "user1",
-          name: "Demo User",
-          email: "demo@example.com",
-        },
       };
 
     case "LOGOUT":
@@ -499,6 +494,12 @@ function appReducer(state, action) {
 export function AppProvider({ children }) {
   const [state, dispatch] = useReducer(appReducer, initialState);
 
+  // In a real app, you'd fetch initial data here, e.g.,
+  // useEffect(() => {
+  //   // dispatch({ type: 'FETCH_DATA_START' });
+  //   // axios.get('/api/data').then(res => dispatch({ type: 'FETCH_DATA_SUCCESS', payload: res.data }))
+  // }, []);
+
   // Helper functions to expose via context
   const getWorkspaceMembers = (workspaceId) => {
     return state.workspaceMembers.filter(
@@ -546,6 +547,53 @@ export function AppProvider({ children }) {
     return roleHierarchy[member.role] >= roleHierarchy[requiredRole];
   };
 
+  // Example of an async action to log in a user
+  const loginUser = async (credentials) => {
+    // In a real app, you would dispatch a 'LOGIN_START' action here to show a loader
+    try {
+      // The URL will be proxied to http://localhost:5000/api/auth/login
+      const response = await axios.post("/api/auth/login", credentials);
+      const { user, token } = response.data;
+
+      // Store the token (e.g., in localStorage) for subsequent requests
+      localStorage.setItem("token", token);
+
+      // Set the user in the state
+      dispatch({ type: "SET_USER", payload: { user } });
+
+      // Update the authentication status
+      dispatch({ type: "LOGIN_SUCCESS" });
+      return true; // Indicate success
+    } catch (error) {
+      console.error("Login failed:", error);
+      // You would dispatch a 'LOGIN_FAILURE' action here to show an error message
+      return false; // Indicate failure
+    }
+  };
+
+  const registerUser = async (userData) => {
+    // You can add a REGISTER_START action to show a loader
+    try {
+      // The URL will be proxied to http://localhost:5000/api/auth/register
+      const response = await axios.post("/api/auth/register", userData);
+      const { user, token } = response.data;
+
+      // Store the token for the new session
+      localStorage.setItem("token", token);
+
+      // Set the user in the state
+      dispatch({ type: "SET_USER", payload: { user } });
+
+      // Update the authentication status
+      dispatch({ type: "LOGIN_SUCCESS" });
+      return true; // Indicate success
+    } catch (error) {
+      console.error("Registration failed:", error);
+      // You would dispatch a 'REGISTER_FAILURE' action here to show an error message
+      return false; // Indicate failure
+    }
+  };
+
   const value = {
     state,
     dispatch,
@@ -554,6 +602,8 @@ export function AppProvider({ children }) {
     getProjectTasks,
     getUserWorkspaces,
     canUserPerformAction,
+    loginUser,
+    registerUser,
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
@@ -567,5 +617,5 @@ export function useApp() {
   return context;
 }
 
-// Export initial state for testing/mocking
+
 export { initialState };

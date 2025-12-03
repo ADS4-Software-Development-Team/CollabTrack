@@ -8,21 +8,23 @@ function Register() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const { dispatch } = useApp();
+  const [isLoading, setIsLoading] = useState(false);
+  const { registerUser } = useApp();
   const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (name && email && password) {
-      dispatch({
-        type: 'REGISTER',
-        payload: { name, email, password },
-      });
-      // For mock purposes, log in the user directly after registration
-      dispatch({ type: 'LOGIN' });
-      navigate('/');
+    setError('');
+    setIsLoading(true);
+
+    const success = await registerUser({ username: name, email, password });
+
+    setIsLoading(false);
+    if (success) {
+      navigate('/login'); // Navigate to login page on successful registration
     } else {
-      setError('Please fill in all fields.');
+      // You might want a more specific error from your backend
+      setError('Registration failed. The email might already be in use.');
     }
   };
 
@@ -62,7 +64,9 @@ function Register() {
               required
             />
           </div>
-          <button type="submit" className="btn-primary">Register</button>
+          <button type="submit" className="btn-primary" disabled={isLoading}>
+            {isLoading ? 'Registering...' : 'Register'}
+          </button>
         </form>
         <p className="auth-switch">
           Already have an account? <Link to="/login">Login here</Link>

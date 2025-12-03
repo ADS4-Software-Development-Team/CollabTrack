@@ -7,17 +7,22 @@ function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const { dispatch } = useApp();
+  const [isLoading, setIsLoading] = useState(false);
+  const { loginUser } = useApp();
   const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Mock authentication
-    if (email && password) {
-      dispatch({ type: 'LOGIN' });
-      navigate('/');
+    setError('');
+    setIsLoading(true);
+
+    const success = await loginUser({ email, password });
+
+    setIsLoading(false);
+    if (success) {
+      navigate('/dashboard'); // Navigate on success
     } else {
-      setError('Please enter email and password.');
+      setError('Invalid email or password. Please try again.'); // Show error on failure
     }
   };
 
@@ -47,7 +52,9 @@ function Login() {
               required
             />
           </div>
-          <button type="submit" className="btn-primary">Login</button>
+          <button type="submit" className="btn-primary" disabled={isLoading}>
+            {isLoading ? 'Logging in...' : 'Login'}
+          </button>
         </form>
         <p className="auth-switch">
           Don't have an account? <Link to="/register">Register here</Link>
