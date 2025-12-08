@@ -42,30 +42,33 @@ router.post('/', auth, async (req, res) => {
   try {
     const id = uuidv4();
 
-    const { data: comment, error } = await supabase
+    const { error: insertError } = await supabase
       .from('comments')
       .insert([
         {
           id,
           content,
           task_id,
-          user_id: req.user.id,
-          created_at: new Date().toISOString()
+          user_id: req.user.id
         }
-      ])
-      .select(`
-        *,
-        users:user_id(username)
-      `)
+      ]);
+
+    if (insertError) throw insertError;
+
+    // Fetch the newly created comment with the username
+    const { data: newComment, error: selectError } = await supabase
+      .from('comments')
+      .select('*, users:user_id(username)')
+      .eq('id', id)
       .single();
 
-    if (error) throw error;
+    if (selectError) throw selectError;
 
-    res.json({ 
+    res.status(201).json({ 
       message: 'Comment created successfully',
       comment: {
-        ...comment,
-        username: comment.users?.username || null
+        ...newComment,
+        username: newComment.users?.username || 'Unknown'
       }
     });
   } catch (err) {
@@ -82,7 +85,9 @@ router.delete('/:id', auth, async (req, res) => {
     // First check if the comment belongs to the user
     const { data: comment, error: checkError } = await supabase
       .from('comments')
-      .select('user_id')
+      .select(`
+        user_id
+      `)
       .eq('id', id)
       .single();
 

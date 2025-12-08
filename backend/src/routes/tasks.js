@@ -6,6 +6,29 @@ import auth from '../auth/authmiddleware.js';
 import { permit } from '../auth/roles.js';
 import { v4 as uuidv4 } from 'uuid';
 
+// Get all tasks (for team dashboard)
+router.get('/', auth, async (req, res) => {
+  try {
+    const { data: tasks, error } = await supabase
+      .from('tasks')
+      .select(`
+        *,
+        created_by_name:created_by(username)
+      `);
+
+    if (error) throw error;
+
+    // The frontend will filter by assigned_to, but we can send the creator's name
+    const formattedTasks = tasks.map(task => ({
+      ...task,
+      created_by_name: task.created_by_name?.username || 'Unknown'
+    }));
+
+    res.json(formattedTasks);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 // Get tasks for a project
 router.get('/project/:projectId', auth, async (req, res) => {
   try {
