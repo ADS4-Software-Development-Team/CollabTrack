@@ -1,62 +1,136 @@
-import {
-  createWorkspace,
-  addWorkspaceMember,
-  getWorkspaceMembers,
-} from "../models/WorkspaceModel.js";
+// src/controllers/workspaceController.js
+import * as workspaceModel from '../models/workspaceModel.js';
+import * as projectModel from '../models/projectModel.js';
 
-// Create a new workspace and add the creator as an admin member
-export const createAndJoinWorkspace = async (req, res) => {
+export const getWorkspaces = async (req, res) => {
   try {
-    const { name, description } = req.body;
-    const userId = req.user.id; // from protect middleware
+    const formattedWorkspaces = await workspaceModel.getWorkspacesForUser(req.user.id);
+    res.json(formattedWorkspaces);
+  } catch (err) {
+    console.error('Get workspaces error:', err);
+    res.status(err.status || 500).json({ error: err.message });
+  }
+};
+// backend/src/controllers/projectController.js - Update getProjects function
+export const getProjects = async (req, res) => {
+  try {
+    console.log('Getting projects for user:', req.user.id, 'role:', req.user.user_role);
+    
+    const projects = await projectModel.getProjects(req.user.id, req.user.user_role);
+    res.json(projects);
+  } catch (err) {
+    console.error('Get projects error:', err);
+    res.status(500).json({ error: err.message });
+  }
+};
 
-    // 1. Create the workspace
-    const newWorkspace = await createWorkspace({
-      name,
-      description,
-      created_by: userId,
-    });
+// Also update getProjectById to allow project_manager access
+export const getProjectById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    console.log('Getting project by ID:', id, 'for user:', req.user.id, 'role:', req.user.user_role);
+    
+    // Pass user role to model function if needed, or handle in controller
+    const project = await projectModel.getProjectById(id);
+    
+    // Check if user is admin/project_manager OR a member of the project
+    if (req.user.user_role !== 'admin' && req.user.user_role !== 'project_manager') {
+      // Check if user is a member of this project
+      const { data: membership, error } = await supabase
+        .from('project_members')
+        .select('project_id')
+        .eq('project_id', id)
+        .eq('user_id', req.user.id)
+        .single();
+        
+      if (error || !membership) {
+        return res.status(403).json({ error: 'Access denied to project' });
+      }
+    }
+    
+    res.json(project);
+  } catch (err) {
+    console.error('Get project by id error:', err);
+    res.status(err.status || 500).json({ error: err.message });
+  }
+};
+export const getWorkspaceById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const result = await workspaceModel.getWorkspaceById(id, req.user.id);
+    res.json(result);
+  } catch (err) {
+    console.error('Get workspace error:', err);
+    res.status(err.status || 500).json({ error: err.message });
+  }
+};
 
-    // 2. Add the creator as the first member with an 'admin' role
-    const memberDetails = {
-      workspace_id: newWorkspace.id,
-      user_id: userId,
-      member_role: "admin", // The creator is the admin
-    };
-    await addWorkspaceMember(memberDetails);
+export const createWorkspace = async (req, res) => {
+  try {
+    const { name } = req.body;
+
+    if (!name) {
+      return res.status(400).json({ error: 'Workspace name is required' });
+    }
+
+    const workspace = await workspaceModel.createWorkspace(name, req.user.id);
 
     res.status(201).json({
-      message: "Workspace created and user added as admin.",
-      workspace: newWorkspace,
+      message: 'Workspace created successfully',
+      workspace
     });
-  } catch (error) {
-    console.error("Error creating workspace:", error);
-    res.status(500).json({ message: "Failed to create workspace" });
+
+  } catch (err) {
+    console.error('Create workspace error:', err);
+    res.status(err.status || 500).json({ error: err.message });
   }
 };
 
-//Add a new member to a specific workspace
-export const addMemberToWorkspace = async (req, res) => {
+export const updateWorkspace = async (req, res) => {
   try {
-    const { workspaceId } = req.params;
-    const { user_id, member_role } = req.body;
+    const { id } = req.params;
+    const { name, description } = req.body;
 
-    const newMember = await addWorkspaceMember({ workspace_id: workspaceId, user_id, member_role });
-    res.status(201).json(newMember);
-  } catch (error) {
-    console.error("Error adding workspace member:", error);
-    res.status(500).json({ message: "Failed to add workspace member" });
+    const workspace = await workspaceModel.updateWorkspace(id, name, description, req.user.id);
+
+    res.json({
+      message: 'Workspace updated successfully',
+      workspace
+    });
+
+  } catch (err) {
+    console.error('Update workspace error:', err);
+    res.status(err.status || 500).json({ error: err.message });
   }
 };
 
-// Get all members for a specific workspace
-export const getMembersOfWorkspace = async (req, res) => {
+export const removeMemberFromWorkspace = async (req, res) => {
   try {
-    const { workspaceId } = req.params;
-    const members = await getWorkspaceMembers(workspaceId);
-    res.status(200).json(members);
-  } catch (error) {
-    console.error("Error fetching workspace members:", error);
-    res.status(500).json({ message: "Failed to fetch workspace members" });
+    const { workspaceId, userId } = req.params;
+    
+    await workspaceModel.removeMemberFromWorkspace(workspaceId, userId, req.user.id);
+
+    res.json({
+      message: 'Member removed successfully'
+    });
+
+  } catch (err) {
+    console.error('Remove member error:', err);
+    res.status(err.status || 500).json({ error: err.message });
+  }
+};
+
+export const deleteWorkspace = async (req, res) => {
+  try {
+    const { id } = req.params;
+    await workspaceModel.deleteWorkspace(id, req.user.id);
+
+    res.json({
+      message: 'Workspace deleted successfully'
+    });
+
+  } catch (err) {
+    console.error('Delete workspace error:', err);
+    res.status(err.status || 500).json({ error: err.message });
   }
 };

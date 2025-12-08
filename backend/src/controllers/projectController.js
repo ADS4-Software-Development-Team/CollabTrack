@@ -1,60 +1,136 @@
-import { createProject, getProjects, getProjectByTitle,updateProject } from "../models/ProjectModel.js"
+// backend/src/controllers/projectController.js
+import * as projectModel from '../models/projectModel.js';
+import { supabase } from '../config/database.js';
 
-export const createNewProject = async (req, res) => {
+export const createProject = async (req, res) => {
   try {
-    const { title, description, status, deadline } = req.body;
+    const { title, description, due_date, team_members, workspace_id } = req.body;
+    const created_by = req.user.id;
 
-      const newProject = await createProject(
-        title,
-        description,
-        status,
-        deadline,
-        req.user.id 
-    );
-    res.status(201).json(newProject);
-    
-  } catch (error) {
-    console.error("Error creating project:", error);
-    res.status(500).json({ message: "Failed to create project" });
+    if (!title) {
+      return res.status(400).json({ error: 'Missing title' });
+    }
+    if (!workspace_id) {
+      return res.status(400).json({ error: 'Missing workspace ID' });
+    }
+
+    const projectData = {
+      title,
+      description,
+      due_date,
+      workspace_id,
+      created_by
+    };
+
+    const newProject = await projectModel.addProject(projectData);
+
+    // Add team members to the project
+    if (team_members && team_members.length > 0) {
+      for (const member of team_members) {
+        await projectModel.addProjectMember(newProject.id, member.user_id);
+      }
+    }
+
+    res.status(201).json({
+      message: 'Project created successfully',
+      project: newProject
+    });
+  } catch (err) {
+    console.error('Create project error:', err);
+    res.status(500).json({ error: err.message });
   }
 };
 
-export const viewAllProjects = async (req, res) => {
-    try {
-    const projects = await getProjects();
-    res.status(200).json(projects);
-  } catch (error) {
-    console.error("Error fetching projects:", error);
-    res.status(500).json({ message: "Failed to fetch projects" });
-  }
-}
- 
-export const viewProjectByTitle = async (req, res) => {
-    const { title } = req.params;
-  
-    try {
-        const project = await getProjectByTitle(title);
-        if (!project) return res.status(404).json({ message: "Project not found" });
-        res.status(200).json(project);
-    } catch (error) {
-        console.error("Error fetching project:", error);
-        res.status(500).json({ message: "Failed to fetch project" });
-
-    }
-}
-
-//description", "status", "deadline"
-export const updateProjectInfo = async (req, res) => { 
-  const { title } = req.params;
-  const { description,status,deadline } = req.body;
-
+export const getProjects = async (req, res) => {
   try {
-    const updatedProject = await updateProject(title, description,status,deadline);
-    if (!updatedProject) return res.status(404).json({ message: "Project not found" });
-    res.status(200).json(updatedProject);
-  } catch (error) {
-    console.error("Error updating project:", error);
-    res.status(500).json({ message: "Failed to update project" });
+    console.log('Getting projects for user:', {
+      id: req.user.id,
+      role: req.user.role,
+      user_role: req.user.user_role
+    });
+    
+    // Use the role from req.user (should be set by auth middleware)
+    const userRole = req.user.role || req.user.user_role;
+    console.log('Using role:', userRole);
+    
+    // Pass both userId and userRole to the model
+    const projects = await projectModel.getProjects(req.user.id, userRole);
+    res.json(projects);
+  } catch (err) {
+    console.error('Get projects error:', err);
+    res.status(500).json({ error: err.message });
   }
+};
 
-}
+export const getProjectById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    console.log('Getting project by ID for user:', {
+      id: req.user.id,
+      role: req.user.role,
+      projectId: id
+    });
+    
+    // Get project details
+    const project = await projectModel.getProjectById(id);
+    
+    // Check if user is admin/project_manager OR a member of the project
+    const userRole = req.user.role || req.user.user_role;
+    
+    if (userRole !== 'admin' && userRole !== 'project_manager') {
+      // Check if user is a member of this project
+      const { data: membership, error } = await supabase
+        .from('project_members')
+        .select('project_id')
+        .eq('project_id', id)
+        .eq('user_id', req.user.id)
+        .single();
+        
+      if (error || !membership) {
+        return res.status(403).json({ error: 'Access denied to project' });
+      }
+    }
+    
+    res.json(project);
+  } catch (err) {
+    console.error('Get project by id error:', err);
+    res.status(err.status || 500).json({ error: err.message });
+  }
+};
+
+// Add update and delete functions
+export const updateProject = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { title, description, due_date, workspace_id } = req.body;
+    
+    const updatedProject = await projectModel.updateProject(id, {
+      title,
+      description,
+      due_date,
+      workspace_id
+    });
+    
+    res.json({
+      message: 'Project updated successfully',
+      project: updatedProject
+    });
+  } catch (err) {
+    console.error('Update project error:', err);
+    res.status(500).json({ error: err.message });
+  }
+};
+
+export const deleteProject = async (req, res) => {
+  try {
+    const { id } = req.params;
+    await projectModel.deleteProject(id);
+    
+    res.json({
+      message: 'Project deleted successfully'
+    });
+  } catch (err) {
+    console.error('Delete project error:', err);
+    res.status(500).json({ error: err.message });
+  }
+};

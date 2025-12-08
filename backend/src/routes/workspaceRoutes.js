@@ -1,21 +1,38 @@
-import express from "express";
-import {
-  createAndJoinWorkspace,
-  addMemberToWorkspace,
-  getMembersOfWorkspace,
-} from "../controllers/workspaceController.js";
-import { protect, authorize } from "../middlewares/authMiddleware.js";
-
+// src/routes/workspaceRoutes.js
+import express from 'express';
 const router = express.Router();
+import auth from '../auth/authmiddleware.js';
+import * as workspaceController from '../controllers/workspaceController.js';
+import * as projectModel from '../models/projectModel.js';
 
-// Route to create a new workspace
-// Any authenticated user can create a workspace
-router.route("/").post(protect, createAndJoinWorkspace);
+// Get all workspaces for current user
+router.get('/', auth, workspaceController.getWorkspaces);
 
-// Routes for a specific workspace's members
-router
-  .route("/:workspaceId/members")
-  .get(protect, getMembersOfWorkspace) //Any authenticated user can see members for now
-  .post(protect, addMemberToWorkspace); // In a real app, you'd use authorize('admin') for the workspace
+// Get workspace by ID
+router.get('/:id', auth, workspaceController.getWorkspaceById);
+
+// Get projects for a workspace
+router.get('/:workspaceId/projects', auth, async (req, res) => {
+  try {
+    const { workspaceId } = req.params;
+    const projects = await projectModel.getProjectsByWorkspaceId(workspaceId);
+    res.json(projects);
+  } catch (err) {
+    console.error('Get projects for workspace error:', err);
+    res.status(err.status || 500).json({ error: err.message });
+  }
+});
+
+// Create new workspace
+router.post('/', auth, workspaceController.createWorkspace);
+
+// Update workspace
+router.put('/:id', auth, workspaceController.updateWorkspace);
+
+// Remove member from workspace
+router.delete('/:workspaceId/members/:userId', auth, workspaceController.removeMemberFromWorkspace);
+
+// Delete workspace
+router.delete('/:id', auth, workspaceController.deleteWorkspace);
 
 export default router;
