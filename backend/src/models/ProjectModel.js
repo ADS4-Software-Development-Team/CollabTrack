@@ -223,6 +223,27 @@ export const addProjectMember = async (project_id, user_id) => {
   }
 };
 
+export const addProjectMembers = async (projectId, userIds) => {
+  try {
+    const members = userIds.map(userId => ({
+      project_id: projectId,
+      user_id: userId,
+      role: 'member' // Default role
+    }));
+
+    const { data, error } = await supabase
+      .from('project_members')
+      .insert(members)
+      .select();
+
+    if (error) throw error;
+    return data;
+  } catch (error) {
+    console.error("Error adding project members:", error);
+    throw error;
+  }
+};
+
 export const getProjectMembers = async (project_id) => {
   try {
     const { data, error } = await supabase
@@ -230,6 +251,7 @@ export const getProjectMembers = async (project_id) => {
       .select(`
         user_id,
         users (
+          *,
           id,
           username,
           email,
@@ -241,7 +263,11 @@ export const getProjectMembers = async (project_id) => {
       .eq("project_id", project_id);
 
     if (error) throw error;
-    return data.map(pm => pm.users);
+    // Return the full user object along with their role in the project
+    return data.map(pm => ({
+      ...pm.users,
+      member_role: pm.role
+    }));
   } catch (error) {
     console.error("Error fetching project members:", error);
     throw error;
