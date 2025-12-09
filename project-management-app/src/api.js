@@ -1,6 +1,7 @@
 // frontend/src/api.js
 import * as supabaseApi from './supabaseApi';
-const API_ROOT = import.meta.env.VITE_API_URL || 'http://localhost:4000/api';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000';
+const API_ROOT = `${API_BASE_URL}/api`;
 
 export async function api(path, opts = {}) {
   const token = localStorage.getItem('token');
@@ -35,13 +36,18 @@ export const projectAPI = {
   deleteProject: (id) => api(`/projects/${id}`, { 
     method: 'DELETE' 
   }),
-  // Keep these Supabase calls for now
+  // This should call the backend to be consistent
+  getProjectMembers: (projectId) => api(`/projects/${projectId}/members`),
+};
+
+// Task API functions - using Supabase for now
+export const taskAPI = {
   createTask: supabaseApi.createTask,
   getTasksForProject: supabaseApi.getTasksForProject,
-  getProjectMembers: supabaseApi.getProjectMembers,
   updateTask: supabaseApi.updateTask,
   deleteTask: supabaseApi.deleteTask
 };
+
 
 export const userAPI = {
   listUsers: () => api('/users'),
