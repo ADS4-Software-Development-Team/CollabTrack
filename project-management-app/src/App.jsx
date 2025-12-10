@@ -16,8 +16,9 @@ import Workspace from './pages/Workspace';
 import CreateWorkspace from './pages/CreateWorkspace';
 import ManageUsers from './pages/ManageUsers';
 import ViewData from './pages/ViewData';
-import WorkspaceProjects from './components/WorkspaceProjects'; // Import the new component
+import WorkspaceProjects from './components/WorkspaceProjects'; 
 import Nav from './components/Nav';
+import ProjectCharts from './pages/ProjectCharts';
 
 export default function App() {
   return (
@@ -59,12 +60,29 @@ export default function App() {
                 </ProtectedRoute>
               }
             />
+             <Route
+              path="/projectCharts"
+              element={
+                <ProtectedRoute requiredRole="project_manager">
+                  <ProjectCharts />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/project-charts"
+              element={
+                <ProtectedRoute requiredRole="project_manager">
+                  <ProjectCharts />
+                </ProtectedRoute>
+              }
+            />
             
             {/* Team Member routes */}
             <Route 
               path="/tasks" 
               element={
-                <ProtectedRoute requiredRole="team_member">
+                <ProtectedRoute requiredRole={['team_member', 'project_manager']}>
                   <Tasks />
                 </ProtectedRoute>
               } 
@@ -127,7 +145,7 @@ export default function App() {
               }
             />
             <Route 
-              path="/projects/:id" 
+              path="/projectBoard" 
               element={
                 <ProtectedRoute>
                   <ProjectBoard />

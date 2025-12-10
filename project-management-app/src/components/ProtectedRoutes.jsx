@@ -5,6 +5,8 @@ import { Navigate } from 'react-router-dom';
 export default function ProtectedRoute({ children, requiredRole }) {
   const user = JSON.parse(localStorage.getItem('user') || '{}');
   const token = localStorage.getItem('token');
+  console.log('ProtectedRoute - user:', user);
+  console.log('ProtectedRoute - requiredRole:', requiredRole);
 
   // Check if user is authenticated
   if (!token) {

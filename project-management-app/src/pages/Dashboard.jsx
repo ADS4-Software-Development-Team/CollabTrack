@@ -68,7 +68,23 @@ export default function Dashboard() {
       setShowCreateWorkspace(false);
     } catch (error) {
       console.error("Failed to create workspace:", error);
-      alert("Failed to create workspace");
+      alert("Workspace successfully created");
+      navigate('/dashboard');
+    }
+  };
+
+  const handleDeleteWorkspace = async (workspaceId, workspaceName) => {
+    if (!window.confirm(`Are you sure you want to delete workspace "${workspaceName}"? This action cannot be undone.`)) {
+      return;
+    }
+
+    try {
+      await workspaceAPI.deleteWorkspace(workspaceId);
+      setWorkspaces(workspaces.filter(workspace => workspace.id !== workspaceId));
+      alert("Workspace deleted successfully");
+    } catch (error) {
+      console.error("Failed to delete workspace:", error);
+      alert("Failed to delete workspace");
     }
   };
 
@@ -86,22 +102,7 @@ export default function Dashboard() {
         </div>
 
         <div className="workspace-actions">
-          <div className="workspace-switcher">
-            <span className="switch-label">Active Workspace:</span>
-            <select
-              className="workspace-select"
-              onChange={(e) => {
-                const workspaceId = e.target.value;
-                // You can handle workspace switching logic here
-              }}
-            >
-              {workspaces.map((workspace) => (
-                <option key={workspace.id} value={workspace.id}>
-                  {workspace.name}
-                </option>
-              ))}
-            </select>
-          </div>
+         
           <button
             className="btn-create-workspace"
             onClick={() => setShowCreateWorkspace(true)}
@@ -215,57 +216,58 @@ export default function Dashboard() {
         ) : (
           <div className="projects-grid">
             {workspaces.map((workspace) => (
-              <Link
-                to={`/workspace/${workspace.id}/projects`}
+              <div
                 key={workspace.id}
                 className="project-card"
               >
-                <div className="project-header">
-                  <div className="workspace-header-left">
-                    <div
-                      className="workspace-dot-large"
-                      style={{ backgroundColor: "#4f46e5" }}
-                    />
-                    <h3>{workspace.name}</h3>
+                <div className="project-card-header">
+                  <Link
+                    to={`/workspace/${workspace.id}/projects`}
+                    className="project-card-link"
+                  >
+                    <div className="workspace-header-left">
+                      <div
+                        className="workspace-dot-large"
+                        style={{ backgroundColor: "#4f46e5" }}
+                      />
+                      <h3>{workspace.name}</h3>
+                    </div>
+                  </Link>
+                  <div className="project-header-actions">
+                    <button
+                      onClick={(e) => {
+                        e.preventDefault();
+                        handleDeleteWorkspace(workspace.id, workspace.name);
+                      }}
+                      className="btn-delete-workspace-text"
+                      title="Delete workspace"
+                    >
+                      Delete
+                    </button>
                   </div>
-                  <span className={`status active`}>Active</span>
                 </div>
-                <div className="project-stats">
-                  <div className="project-stat">
-                    <span className="stat-number">{workspace.project_count || 0}</span>
-                    <span className="stat-label">Projects</span>
+                <Link
+                  to={`/workspace/${workspace.id}/projects`}
+                  className="project-card-link"
+                >
+                  <div className="project-stats">
+                    <div className="project-stat">
+                      <span className="stat-number">{workspace.project_count || 0}</span>
+                      <span className="stat-label">Projects</span>
+                    </div>
+                    <div className="project-stat">
+                      <span className="stat-number">{workspace.task_count || 0}</span>
+                      <span className="stat-label">Tasks</span>
+                    </div>
                   </div>
-                  <div className="project-stat">
-                    <span className="stat-number">{workspace.task_count || 0}</span>
-                    <span className="stat-label">Tasks</span>
+                  <div className="text-sm text-gray-500 mb-2">
+                    Created: {new Date(workspace.created_at).toLocaleDateString()}
                   </div>
-                </div>
-                <div className="text-sm text-gray-500 mb-2">
-                  Created: {new Date(workspace.created_at).toLocaleDateString()}
-                </div>
-              </Link>
+                </Link>
+              </div>
             ))}
           </div>
         )}
-      </div>
-
-      {/* Right Side Navigation */}
-      <div className="w-64 bg-gray-100 p-4 rounded-lg shadow-md">
-        <h3 className="text-xl font-bold mb-4">Actions</h3>
-        <nav className="space-y-4">
-          <Link
-            to="/view-data"
-            className="block bg-gray-600 text-white px-4 py-2 rounded-md text-center hover:bg-gray-700"
-          >
-            View Project Data
-          </Link>
-          <Link
-            to="/manage-users"
-            className="block bg-purple-600 text-white px-4 py-2 rounded-md text-center hover:bg-purple-700"
-          >
-            Manage Users
-          </Link>
-        </nav>
       </div>
 
       {isModalOpen && selectedWorkspace && (

@@ -1,5 +1,5 @@
 // backend/src/controllers/projectController.js
-import * as projectModel from '../models/projectModel.js'; // Ensuring case is correct: 'ProjectModel.js'
+import * as projectModel from '../models/projectModel.js';
 import { supabase } from '../config/database.js';
 
 export const createProject = async (req, res) => {
@@ -41,34 +41,6 @@ export const createProject = async (req, res) => {
   }
 };
 
-export const getProjectMembers = async (req, res) => {
-  try {
-    const { projectId } = req.params;
-    const members = await projectModel.getProjectMembers(projectId);
-    res.json(members);
-  } catch (err) {
-    console.error('Get project members error:', err);
-    res.status(500).json({ error: err.message });
-  }
-};
-
-export const addProjectMembers = async (req, res) => {
-  try {
-    const { projectId } = req.params;
-    const { userIds } = req.body;
-
-    if (!userIds || !Array.isArray(userIds) || userIds.length === 0) {
-      return res.status(400).json({ error: 'User IDs must be a non-empty array.' });
-    }
-
-    const newMembers = await projectModel.addProjectMembers(projectId, userIds);
-    res.status(201).json({ message: 'Members added successfully', members: newMembers });
-  } catch (err) {
-    console.error('Add project members error:', err);
-    res.status(500).json({ error: err.message });
-  }
-};
-
 export const getProjects = async (req, res) => {
   try {
     console.log('Getting projects for user:', {
@@ -77,11 +49,9 @@ export const getProjects = async (req, res) => {
       user_role: req.user.user_role
     });
     
-    // Use the role from req.user (should be set by auth middleware)
     const userRole = req.user.role || req.user.user_role;
     console.log('Using role:', userRole);
     
-    // Pass both userId and userRole to the model
     const projects = await projectModel.getProjects(req.user.id, userRole);
     res.json(projects);
   } catch (err) {
@@ -99,14 +69,11 @@ export const getProjectById = async (req, res) => {
       projectId: id
     });
     
-    // Get project details
     const project = await projectModel.getProjectById(id);
     
-    // Check if user is admin/project_manager OR a member of the project
     const userRole = req.user.role || req.user.user_role;
     
     if (userRole !== 'admin' && userRole !== 'project_manager') {
-      // Check if user is a member of this project
       const { data: membership, error } = await supabase
         .from('project_members')
         .select('project_id')
@@ -126,7 +93,6 @@ export const getProjectById = async (req, res) => {
   }
 };
 
-// Add update and delete functions
 export const updateProject = async (req, res) => {
   try {
     const { id } = req.params;
@@ -161,4 +127,125 @@ export const deleteProject = async (req, res) => {
     console.error('Delete project error:', err);
     res.status(500).json({ error: err.message });
   }
+};
+
+export const getAllProjectData = async (req, res) => {
+  try {
+    const projects = await projectModel.getAllProjectData();
+    res.json(projects);
+  } catch (err) {
+    console.error('Get all project data error:', err);
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// Analytics endpoint
+export const getProjectAnalytics = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const userRole = req.user.role || req.user.user_role;
+    
+    console.log('Getting analytics for user:', { userId, userRole });
+    
+    // Get projects based on user role
+    let projects;
+    if (userRole === 'admin') {
+      projects = await projectModel.getProjects(null, 'admin');
+    } else if (userRole === 'project_manager') {
+      projects = await projectModel.getProjects(userId, 'project_manager');
+    } else {
+      projects = await projectModel.getProjects(userId, 'team_member');
+    }
+    
+    if (!Array.isArray(projects)) {
+      console.error('Projects is not an array:', projects);
+      return res.status(500).json({ error: 'Invalid project data format' });
+    }
+    
+    // Fetch tasks for each project to calculate progress
+    const projectsWithTasks = await Promise.all(
+      projects.map(async (project) => {
+        try {
+          // Get tasks for this project
+          const { data: tasks, error: tasksError } = await supabase
+            .from('tasks')
+            .select('*')
+            .eq('project_id', project.id);
+            
+          if (tasksError) {
+            console.error(`Error fetching tasks for project ${project.id}:`, tasksError);
+            return { ...project, tasks: [] };
+          }
+          
+          // Calculate progress based on tasks
+          let progress = project.progress || 0;
+          if (tasks && tasks.length > 0) {
+            const completedTasks = tasks.filter(task => 
+              task.status === 'completed' || task.status === 'done'
+            ).length;
+            progress = Math.round((completedTasks / tasks.length) * 100);
+          }
+          
+          // Get member count
+          const { data: members, error: membersError } = await supabase
+            .from('project_members')
+            .select('user_id')
+            .eq('project_id', project.id);
+            
+          const memberCount = membersError ? 0 : (members?.length || 0);
+          
+          return {
+            ...project,
+            tasks: tasks || [],
+            progress,
+            task_count: tasks?.length || 0,
+            member_count: memberCount
+          };
+        } catch (err) {
+          console.error(`Error processing project ${project.id}:`, err);
+          return project;
+        }
+      })
+    );
+    
+    // Calculate analytics
+    const activeProjects = projectsWithTasks.filter(p => 
+      p.status === 'active' || p.status === 'in_progress'
+    ).length;
+    
+    const completedProjects = projectsWithTasks.filter(p => 
+      p.status === 'completed' || p.status === 'done'
+    ).length;
+    
+    const totalProgress = projectsWithTasks.reduce((sum, p) => sum + (p.progress || 0), 0);
+    const averageProgress = projectsWithTasks.length > 0 
+      ? Math.round(totalProgress / projectsWithTasks.length) 
+      : 0;
+    
+    const analytics = {
+      totalProjects: projectsWithTasks.length,
+      activeProjects,
+      completedProjects,
+      averageProgress,
+      totalTasks: projectsWithTasks.reduce((sum, p) => sum + (p.task_count || 0), 0),
+      totalMembers: projectsWithTasks.reduce((sum, p) => sum + (p.member_count || 0), 0),
+      projects: projectsWithTasks
+    };
+    
+    res.json(analytics);
+  } catch (error) {
+    console.error('Analytics error:', error);
+    res.status(500).json({ error: 'Failed to load analytics' });
+  }
+};
+
+// Export all functions
+export default {
+  createProject,
+  getProjects,
+  getProjectById,
+  updateProject,
+  deleteProject,
+  getAllProjectData,
+  getProjectAnalytics
 };

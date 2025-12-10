@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import '../styles.css'; 
+import '../styles.css';
+
 export default function Landing() {
   return (
     <div className="landing">
@@ -17,31 +18,106 @@ export default function Landing() {
               track progress, manage tasks, and deliver projects on time.
             </p>
             <div className="hero-actions">
-              <Link to="/register" className="btn-primary">
-                Register
-              </Link>
-              <Link to="/login" className="btn-secondary">
+              <Link 
+                to="/login" 
+                className="inline-flex items-center justify-center px-6 py-2.5 text-sm font-semibold rounded-lg border-2 border-gray-300 text-white-600 hover:bg-gray-50 hover:border-gray-400 hover:shadow-sm transition-all duration-200 h-10 min-w-[100px] tracking-wide"
+              >
                 Login
+              </Link>
+              <Link 
+                to="/register" 
+                className="inline-flex items-center justify-center px-6 py-2.5 text-sm font-semibold rounded-lg bg-green-500 text-white hover:bg-green-600 hover:shadow-sm transition-all duration-200 h-10 min-w-[100px] tracking-wide"
+              >
+                Register
               </Link>
             </div>
           </div>
           <div className="hero-visual">
-            <div className="dashboard-preview">
-              <div className="preview-header"></div>
-              <div className="preview-content">
-                <div className="preview-sidebar"></div>
-                <div className="preview-main">
-                  <div className="preview-card"></div>
-                  <div className="preview-card"></div>
-                  <div className="preview-card"></div>
+            <div className="gantt-chart-preview">
+              {/* Gantt Chart Header */}
+              <div className="gantt-header">
+                <div className="gantt-title">Project Timeline</div>
+                <div className="gantt-timeframe">Week 1 - Week 8</div>
+              </div>
+              
+              {/* Gantt Chart Grid */}
+              <div className="gantt-grid">
+                {/* Timeline Weeks */}
+                <div className="gantt-timeline">
+                  {[...Array(8)].map((_, i) => (
+                    <div key={i} className="gantt-week">W{i+1}</div>
+                  ))}
+                </div>
+                
+                {/* Gantt Bars */}
+                <div className="gantt-bars">
+                  {/* Task 1 */}
+                  <div className="gantt-task">
+                    <div className="task-label">Research</div>
+                    <div className="task-bar-container">
+                      <div className="task-bar" style={{ width: '50%', backgroundColor: '#4F46E5' }}></div>
+                    </div>
+                  </div>
+                  
+                  {/* Task 2 */}
+                  <div className="gantt-task">
+                    <div className="task-label">Design</div>
+                    <div className="task-bar-container">
+                      <div className="task-bar" style={{ width: '75%', marginLeft: '12.5%', backgroundColor: '#10B981' }}></div>
+                    </div>
+                  </div>
+                  
+                  {/* Task 3 */}
+                  <div className="gantt-task">
+                    <div className="task-label">Development</div>
+                    <div className="task-bar-container">
+                      <div className="task-bar" style={{ width: '62.5%', marginLeft: '25%', backgroundColor: '#F59E0B' }}></div>
+                    </div>
+                  </div>
+                  
+                  {/* Task 4 */}
+                  <div className="gantt-task">
+                    <div className="task-label">Testing</div>
+                    <div className="task-bar-container">
+                      <div className="task-bar" style={{ width: '37.5%', marginLeft: '50%', backgroundColor: '#EF4444' }}></div>
+                    </div>
+                  </div>
+                  
+                  {/* Task 5 */}
+                  <div className="gantt-task">
+                    <div className="task-label">Deployment</div>
+                    <div className="task-bar-container">
+                      <div className="task-bar" style={{ width: '25%', marginLeft: '75%', backgroundColor: '#8B5CF6' }}></div>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Progress Line */}
+                <div className="gantt-progress-line" style={{ left: '50%' }}>
+                  <div className="progress-line"></div>
+                  <div className="progress-label">Current Week</div>
+                </div>
+              </div>
+              
+              {/* Legend */}
+              <div className="gantt-legend">
+                <div className="legend-item">
+                  <div className="legend-color" style={{ backgroundColor: '#4F46E5' }}></div>
+                  <span>Research</span>
+                </div>
+                <div className="legend-item">
+                  <div className="legend-color" style={{ backgroundColor: '#10B981' }}></div>
+                  <span>Design</span>
+                </div>
+                <div className="legend-item">
+                  <div className="legend-color" style={{ backgroundColor: '#F59E0B' }}></div>
+                  <span>Development</span>
                 </div>
               </div>
             </div>
           </div>
         </div>
       </section>
-
-  
 
       {/* How It Works Section */}
       <section className="how-it-works">
@@ -113,7 +189,7 @@ export default function Landing() {
             </div>
           </div>
           <div className="footer-bottom">
-            <p>&copy; 2025 CollabTrack. All rights reserved.</p>
+            <p>&copy; 2024 CollabTrack. All rights reserved.</p>
           </div>
         </div>
       </footer>

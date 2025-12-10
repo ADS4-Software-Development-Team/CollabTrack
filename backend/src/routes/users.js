@@ -3,11 +3,11 @@ import express from 'express';
 const router = express.Router();
 import { supabase } from '../config/database.js';
 import bcrypt from 'bcryptjs';
-import auth from '../auth/authmiddleware.js';
-import { permit } from '../auth/roles.js';
+import authMiddleware from '../middleware/authmiddleware.js';
+import { permit } from '../middleware/roles.js';
 
 // List users (admin & pm)
-router.get('/', auth, permit('admin','project_manager'), async (req, res) => {
+router.get('/', authMiddleware, permit('admin','project_manager'), async (req, res) => {
   try {
     const { data: users, error } = await supabase
       .from('users')
@@ -24,7 +24,7 @@ router.get('/', auth, permit('admin','project_manager'), async (req, res) => {
 });
 
 // Get current user profile
-router.get('/profile', auth, async (req, res) => {
+router.get('/profile', authMiddleware, async (req, res) => {
   try {
     const { data: user, error } = await supabase
       .from('users')
@@ -42,7 +42,7 @@ router.get('/profile', auth, async (req, res) => {
 });
 
 // Delete user (admin only)
-router.delete('/:id', auth, permit('admin'), async (req, res) => {
+router.delete('/:id', authMiddleware, permit('admin'), async (req, res) => {
   const { id } = req.params;
 
   // It's generally not a good idea to allow deleting the own user's account via this admin endpoint
